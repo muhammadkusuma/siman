@@ -4,25 +4,24 @@ import (
 	"time"
 )
 
-
 // MutationLog mencatat sejarah perpindahan aset antar unit/ruangan.
 type MutationLog struct {
-	ID      uint `json:"id" gorm:"primaryKey;autoIncrement"`
-	AssetID uint `json:"asset_id" gorm:"not null"`
+	ID      uint `json:"id" gorm:"primaryKey;autoIncrement;comment:ID Log Mutasi"`
+	AssetID uint `json:"asset_id" gorm:"not null;comment:ID Aset yang dipindahkan"`
 
-	// Relasi Asal (Pointer *uint karena bisa NULL jika barang baru input)
-	FromDepartmentID *uint `json:"from_department_id" gorm:"comment:Unit Asal"`
-	FromRoomID       *uint `json:"from_room_id" gorm:"comment:Ruangan Asal"`
+	// Asal
+	FromDepartmentID *uint `json:"from_department_id" gorm:"comment:Unit Asal (Bisa NULL jika barang baru)"`
+	FromRoomID       *uint `json:"from_room_id" gorm:"comment:Ruangan Asal (Bisa NULL jika barang baru)"`
 
-	// Relasi Tujuan (Tidak boleh NULL)
-	ToDepartmentID uint `json:"to_department_id" gorm:"not null;comment:Unit Tujuan"`
-	ToRoomID       uint `json:"to_room_id" gorm:"comment:Ruangan Tujuan"`
+	// Tujuan
+	ToDepartmentID uint `json:"to_department_id" gorm:"not null;comment:Unit Tujuan pemindahan"`
+	ToRoomID       uint `json:"to_room_id" gorm:"comment:Ruangan Tujuan pemindahan"`
 
-	MutationDate time.Time `json:"mutation_date" gorm:"default:CURRENT_TIMESTAMP"`
-	ApprovedBy   string    `json:"approved_by" gorm:"size:255;comment:Nama Pejabat yang menyetujui"`
-	Reason       string    `json:"reason" gorm:"type:text;comment:Alasan mutasi"`
+	MutationDate time.Time `json:"mutation_date" gorm:"default:CURRENT_TIMESTAMP;comment:Waktu mutasi terjadi"`
+	ApprovedBy   string    `json:"approved_by" gorm:"size:255;comment:Nama Pejabat yang menyetujui mutasi (cth: Kabag Umum)"`
+	Reason       string    `json:"reason" gorm:"type:text;comment:Alasan mutasi (cth: Peminjaman untuk acara seminar)"`
 
-	// Relasi Struct
+	// Relasi
 	Asset          Asset       `json:"asset" gorm:"foreignKey:AssetID"`
 	FromDepartment *Department `json:"from_department" gorm:"foreignKey:FromDepartmentID"`
 	ToDepartment   Department  `json:"to_department" gorm:"foreignKey:ToDepartmentID"`
