@@ -3,6 +3,7 @@ package main
 import (
 	"muhammadkusuma/siman/controllers" // Import package controllers
 	"muhammadkusuma/siman/models"
+	"muhammadkusuma/siman/middlewares"
 
 	"github.com/gin-gonic/gin"
 )

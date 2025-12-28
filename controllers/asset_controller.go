@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "gorm.io/gorm"
 )
 
 // GetAssets mengambil semua aset beserta relasinya
@@ -36,22 +35,22 @@ func CreateAsset(c *gin.Context) {
 		return
 	}
 
-	// Validasi sederhana: Pastikan kode inventaris unik (opsional, karena DB sudah unique)
-	// Set CreatedAt otomatis oleh GORM
-	
+	// Ambil User ID dari Token untuk field CreatedBy & UpdatedBy
+	// Kita gunakan helper c.MustGet karena sudah dipastikan ada oleh Middleware
+	if userID, exists := c.Get("userID"); exists {
+		input.CreatedByID = userID.(uint)
+		input.UpdatedByID = userID.(uint)
+	}
+
+	// Validasi & Simpan DB
 	if err := models.DB.Create(&input).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// --- TAMBAHAN: CATAT KE AUDIT LOG ---
-    // Pastikan Anda punya mekanisme untuk tahu UserID yang sedang login. 
-    // Untuk contoh ini kita hardcode ID user = 1 (Admin) jika belum pakai JWT Middleware.
-    currentUserID := uint(1) 
-    
-    // Panggil Helper dari Audit Controller tadi
-    // Parameter: Context, UserID, Action, TableName, RecordID, Changes/Keterangan
-    RecordLog(c, currentUserID, "CREATE", "assets", input.ID, "Menambahkan aset baru: "+input.Name)
+	// --- LOG AUDIT OTOMATIS ---
+	// Perbaikan: Tidak perlu kirim User ID lagi, cukup Context
+	RecordLog(c, "CREATE", "assets", input.ID, "Menambahkan aset baru: "+input.Name)
 
 	c.JSON(http.StatusOK, gin.H{"data": input})
 }
@@ -70,7 +69,16 @@ func UpdateAsset(c *gin.Context) {
 		return
 	}
 
+	// Update field UpdatedBy dari token
+	if userID, exists := c.Get("userID"); exists {
+		input.UpdatedByID = userID.(uint)
+	}
+
 	models.DB.Model(&asset).Updates(input)
+
+	// --- LOG AUDIT UPDATE ---
+	RecordLog(c, "UPDATE", "assets", asset.ID, "Mengupdate data aset")
+
 	c.JSON(http.StatusOK, gin.H{"data": asset})
 }
 
@@ -83,5 +91,9 @@ func DeleteAsset(c *gin.Context) {
 	}
 
 	models.DB.Delete(&asset)
+
+	// --- LOG AUDIT DELETE ---
+	RecordLog(c, "DELETE", "assets", asset.ID, "Menghapus aset: "+asset.Name)
+
 	c.JSON(http.StatusOK, gin.H{"data": true})
 }
