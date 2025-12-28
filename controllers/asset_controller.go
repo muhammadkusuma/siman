@@ -44,6 +44,15 @@ func CreateAsset(c *gin.Context) {
 		return
 	}
 
+	// --- TAMBAHAN: CATAT KE AUDIT LOG ---
+    // Pastikan Anda punya mekanisme untuk tahu UserID yang sedang login. 
+    // Untuk contoh ini kita hardcode ID user = 1 (Admin) jika belum pakai JWT Middleware.
+    currentUserID := uint(1) 
+    
+    // Panggil Helper dari Audit Controller tadi
+    // Parameter: Context, UserID, Action, TableName, RecordID, Changes/Keterangan
+    RecordLog(c, currentUserID, "CREATE", "assets", input.ID, "Menambahkan aset baru: "+input.Name)
+
 	c.JSON(http.StatusOK, gin.H{"data": input})
 }
 

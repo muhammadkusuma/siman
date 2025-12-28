@@ -50,6 +50,10 @@ func main() {
 		
 		api.POST("/maintenances", controllers.CreateMaintenance) // Lapor Rusak
 		api.GET("/maintenances", controllers.GetMaintenances)
+
+		// --- Audit Logs (Read Only) ---
+		api.GET("/audit-logs", controllers.GetAuditLogs)
+		api.GET("/audit-logs/:id", controllers.GetAuditLogByID)
 	}
 
 	router.Run(":3000")
