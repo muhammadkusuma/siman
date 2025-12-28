@@ -21,6 +21,7 @@ func main() {
 
 	// --- Master Data Routes ---
 	api := router.Group("/api")
+	api.Use(middlewares.AuthMiddleware())
 	{
 		// Faculties & Depts
 		api.GET("/faculties", controllers.GetFaculties)
