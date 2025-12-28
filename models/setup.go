@@ -8,12 +8,26 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	database, err := gorm.Open(mysql.Open("root:12345678@tcp(127.0.0.1:3306)/db_siman"), &gorm.Config{})
+	// Pastikan username:password dan nama db sesuai konfigurasi Anda
+	dsn := "root:12345678@tcp(127.0.0.1:3306)/db_siman?charset=utf8mb4&parseTime=True&loc=Local"
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	database.AutoMigrate(&Post{})
+	// Migrasi semua model yang ada
+	database.AutoMigrate(
+		&User{},
+		&Faculty{},
+		&Department{},
+		&Building{},
+		&Room{},
+		&AssetCategory{},
+		&Asset{},
+		&MaintenanceLog{},
+		&MutationLog{},
+		&AuditLog{},
+	)
 
 	DB = database
 }

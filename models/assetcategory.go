@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 // AssetCategory menyimpan kode klasifikasi BMN (Barang Milik Negara).
 type AssetCategory struct {
 	ID          uint   `json:"id" gorm:"primaryKey;autoIncrement"`

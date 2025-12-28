@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 // Room menyimpan detail ruangan di dalam gedung.
 type Room struct {
 	ID         uint   `json:"id" gorm:"primaryKey;autoIncrement"`

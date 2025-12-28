@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 // Building menyimpan data Gedung fisik.
 type Building struct {
 	ID          uint   `json:"id" gorm:"primaryKey;autoIncrement"`

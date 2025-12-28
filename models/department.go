@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 // Department merepresentasikan Prodi (S1/S2/S3) atau Bagian/Biro spesifik.
 type Department struct {
 	ID        uint   `json:"id" gorm:"primaryKey;autoIncrement"`
