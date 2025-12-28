@@ -1,9 +1,9 @@
 package main
 
 import (
-	"muhammadkusuma/siman/controllers" // Import package controllers
-	"muhammadkusuma/siman/models"
+	"muhammadkusuma/siman/controllers"
 	"muhammadkusuma/siman/middlewares"
+	"muhammadkusuma/siman/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +11,10 @@ import (
 func main() {
 	router := gin.Default()
 	models.ConnectDatabase()
+
+	// --- Static File Server ---
+	// Ini membuat file di dalam folder "./uploads" bisa diakses via URL "http://localhost:3000/uploads/..."
+	router.Static("/uploads", "./uploads")
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "SIMAN API is Running!"})
@@ -24,36 +28,32 @@ func main() {
 	api := router.Group("/api")
 	api.Use(middlewares.AuthMiddleware())
 	{
-		// Faculties & Depts
+		// ... (kode route lainnya tetap sama) ...
 		api.GET("/faculties", controllers.GetFaculties)
 		api.POST("/faculties", controllers.CreateFaculty)
 		api.GET("/departments", controllers.GetDepartments)
 		api.POST("/departments", controllers.CreateDepartment)
-
-		// Locations
 		api.GET("/buildings", controllers.GetBuildings)
 		api.POST("/buildings", controllers.CreateBuilding)
 		api.POST("/rooms", controllers.CreateRoom)
-
-		// Categories
 		api.GET("/categories", controllers.GetCategories)
 		api.POST("/categories", controllers.CreateCategory)
 
 		// --- Assets ---
 		api.GET("/assets", controllers.GetAssets)
 		api.GET("/assets/:id", controllers.GetAssetByID)
-		api.POST("/assets", controllers.CreateAsset)
-		api.PUT("/assets/:id", controllers.UpdateAsset)
+		
+		// Update logic Create dan Update di controller (lihat file berikutnya)
+		api.POST("/assets", controllers.CreateAsset) 
+		api.PUT("/assets/:id", controllers.UpdateAsset) 
+		
 		api.DELETE("/assets/:id", controllers.DeleteAsset)
 
-		// --- Transactions ---
-		api.POST("/mutations", controllers.CreateMutation) // Pindah Aset
+		// ... (kode transaction & audit log tetap sama) ...
+		api.POST("/mutations", controllers.CreateMutation)
 		api.GET("/mutations", controllers.GetMutations)
-		
-		api.POST("/maintenances", controllers.CreateMaintenance) // Lapor Rusak
+		api.POST("/maintenances", controllers.CreateMaintenance)
 		api.GET("/maintenances", controllers.GetMaintenances)
-
-		// --- Audit Logs (Read Only) ---
 		api.GET("/audit-logs", controllers.GetAuditLogs)
 		api.GET("/audit-logs/:id", controllers.GetAuditLogByID)
 	}
