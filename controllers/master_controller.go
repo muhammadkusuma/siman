@@ -84,3 +84,16 @@ func CreateCategory(c *gin.Context) {
 	models.DB.Create(&input)
 	c.JSON(http.StatusOK, gin.H{"data": input})
 }
+
+// GetRoomsByBuildingID mengambil daftar ruangan berdasarkan ID Gedung
+func GetRoomsByBuildingID(c *gin.Context) {
+	buildingID := c.Param("buildingID")
+	var rooms []models.Room
+	
+	if err := models.DB.Where("building_id = ?", buildingID).Find(&rooms).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Rooms not found"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": rooms})
+}

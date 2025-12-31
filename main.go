@@ -28,13 +28,21 @@ func main() {
 	api := router.Group("/api")
 	api.Use(middlewares.AuthMiddleware())
 	{
-		// ... (kode route lainnya tetap sama) ...
+		// --- BARU: Dashboard & User ---
+		api.GET("/dashboard", controllers.GetDashboardStats) // Endpoint Dashboard
+		api.GET("/profile", controllers.GetProfile)          // Endpoint Profil Saya
+		api.GET("/users", controllers.GetAllUsers)           // Endpoint List User
+
 		api.GET("/faculties", controllers.GetFaculties)
 		api.POST("/faculties", controllers.CreateFaculty)
 		api.GET("/departments", controllers.GetDepartments)
 		api.POST("/departments", controllers.CreateDepartment)
 		api.GET("/buildings", controllers.GetBuildings)
 		api.POST("/buildings", controllers.CreateBuilding)
+
+		// --- BARU: Filter Ruangan by Gedung ---
+		api.GET("/buildings/:buildingID/rooms", controllers.GetRoomsByBuildingID)
+		
 		api.POST("/rooms", controllers.CreateRoom)
 		api.GET("/categories", controllers.GetCategories)
 		api.POST("/categories", controllers.CreateCategory)
@@ -42,11 +50,11 @@ func main() {
 		// --- Assets ---
 		api.GET("/assets", controllers.GetAssets)
 		api.GET("/assets/:id", controllers.GetAssetByID)
-		
+
 		// Update logic Create dan Update di controller (lihat file berikutnya)
-		api.POST("/assets", controllers.CreateAsset) 
-		api.PUT("/assets/:id", controllers.UpdateAsset) 
-		
+		api.POST("/assets", controllers.CreateAsset)
+		api.PUT("/assets/:id", controllers.UpdateAsset)
+
 		api.DELETE("/assets/:id", controllers.DeleteAsset)
 
 		// ... (kode transaction & audit log tetap sama) ...
