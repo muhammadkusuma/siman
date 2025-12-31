@@ -9,11 +9,22 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"time"
+	"github.com/joho/godotenv"
+	"log"
+	"os"
 )
 
 func main() {
+	// 1. LOAD ENVIRONMENT VARIABLES DULU
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	router := gin.Default()
-    models.ConnectDatabase()
+	
+	// 2. Koneksi Database sekarang akan baca dari env
+	models.ConnectDatabase()
 
     // --- SETUP CORS ---
     // Ini mengizinkan semua domain mengakses API (Bisa diperketat nanti)
@@ -82,5 +93,9 @@ func main() {
 		api.GET("/audit-logs/:id", controllers.GetAuditLogByID)
 	}
 
-	router.Run(":3000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	router.Run(":" + port)
 }
