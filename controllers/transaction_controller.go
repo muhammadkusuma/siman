@@ -98,3 +98,65 @@ func GetMaintenances(c *gin.Context) {
 	models.DB.Preload("Asset").Find(&logs)
 	c.JSON(http.StatusOK, gin.H{"data": logs})
 }
+
+// UpdateMaintenance: Mengubah data perbaikan
+func UpdateMaintenance(c *gin.Context) {
+	id := c.Param("id")
+	var maintenance models.MaintenanceLog
+
+	// 1. Cari Data Lama
+	if err := models.DB.First(&maintenance, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Maintenance log not found"})
+		return
+	}
+
+	// 2. Validasi Input JSON
+	var input models.MaintenanceLog
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 3. Update Field
+	maintenance.AssetID = input.AssetID
+	maintenance.IssueDate = input.IssueDate
+	maintenance.Status = input.Status
+	maintenance.Description = input.Description
+	maintenance.VendorName = input.VendorName
+	maintenance.Cost = input.Cost
+	maintenance.ActionTaken = input.ActionTaken
+
+	// 4. Simpan Perubahan
+	if err := models.DB.Save(&maintenance).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update maintenance log"})
+		return
+	}
+
+	// 5. OTOMATIS UPDATE STATUS ASET
+	// Jika status maintenance berubah, update juga status operasional aset
+	if maintenance.Status == "Proses" {
+		models.DB.Model(&models.Asset{}).Where("id = ?", maintenance.AssetID).Update("operational_status", "Dalam Perbaikan")
+	} else if maintenance.Status == "Selesai" {
+		models.DB.Model(&models.Asset{}).Where("id = ?", maintenance.AssetID).Update("operational_status", "Aktif")
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": maintenance, "message": "Maintenance updated successfully"})
+}
+
+// DeleteMaintenance: Menghapus data perbaikan
+func DeleteMaintenance(c *gin.Context) {
+	id := c.Param("id")
+	var maintenance models.MaintenanceLog
+
+	if err := models.DB.First(&maintenance, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Maintenance log not found"})
+		return
+	}
+
+	if err := models.DB.Delete(&maintenance).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete maintenance log"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Maintenance log deleted successfully"})
+}

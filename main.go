@@ -43,7 +43,6 @@ func main() {
 	// --- Static File Server ---
 	// Ini membuat file di dalam folder "./uploads" bisa diakses via URL "http://localhost:3000/uploads/..."
 	router.Static("/uploads", "./uploads")
-	
 
 	// --- ROOT ENDPOINT (HEALTH CHECK) ---
 	// Diubah agar mengecek koneksi database
@@ -86,7 +85,7 @@ func main() {
 	api := router.Group("/api")
 	api.Use(middlewares.AuthMiddleware())
 	{
-		
+
 		// --- BARU: Dashboard & User ---
 		api.GET("/dashboard", controllers.GetDashboardStats) // Endpoint Dashboard
 		api.GET("/users", controllers.GetAllUsers)           // Endpoint List User
@@ -136,6 +135,8 @@ func main() {
 
 		api.POST("/maintenances", controllers.CreateMaintenance)
 		api.GET("/maintenances", controllers.GetMaintenances)
+		api.PUT("/maintenances/:id", controllers.UpdateMaintenance) 
+		api.DELETE("/maintenances/:id", controllers.DeleteMaintenance)
 
 		api.GET("/audit-logs", controllers.GetAuditLogs)
 		api.GET("/audit-logs/:id", controllers.GetAuditLogByID)
