@@ -11,11 +11,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetAssets (Tidak berubah)
+// Update fungsi GetAssets agar bisa search
 func GetAssets(c *gin.Context) {
-	var assets []models.Asset
-	models.DB.Preload("Category").Preload("Department").Preload("Room").Find(&assets)
-	c.JSON(http.StatusOK, gin.H{"data": assets})
+    var assets []models.Asset
+    
+    // Ambil parameter query dari URL: ?search=laptop&status=Baik
+    search := c.Query("search")
+    status := c.Query("status")
+
+    // Mulai Query
+    query := models.DB.Preload("Category").Preload("Department").Preload("Room")
+
+    // Filter by Name (Search)
+    if search != "" {
+        query = query.Where("name LIKE ?", "%"+search+"%")
+    }
+
+    // Filter by Condition
+    if status != "" {
+        query = query.Where("condition_status = ?", status)
+    }
+
+    // Eksekusi
+    query.Find(&assets)
+
+    c.JSON(http.StatusOK, gin.H{"data": assets})
 }
 
 // GetAssetByID (Tidak berubah)

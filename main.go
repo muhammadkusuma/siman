@@ -6,11 +6,27 @@ import (
 	"muhammadkusuma/siman/models"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/gin-contrib/cors"
+	"time"
 )
 
 func main() {
 	router := gin.Default()
-	models.ConnectDatabase()
+    models.ConnectDatabase()
+
+    // --- SETUP CORS ---
+    // Ini mengizinkan semua domain mengakses API (Bisa diperketat nanti)
+    router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"*"}, // Atau ganti "http://localhost:5173"
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+    }))
+	// router := gin.Default()
+	// models.ConnectDatabase()
 
 	// --- Static File Server ---
 	// Ini membuat file di dalam folder "./uploads" bisa diakses via URL "http://localhost:3000/uploads/..."
