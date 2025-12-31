@@ -87,10 +87,14 @@ func main() {
 	{
 		// --- BARU: Dashboard & User ---
 		api.GET("/dashboard", controllers.GetDashboardStats) // Endpoint Dashboard
-		api.GET("/profile", controllers.GetProfile)          // Endpoint Profil Saya
 		api.GET("/users", controllers.GetAllUsers)           // Endpoint List User
 
-		api.GET("/faculties", controllers.GetFaculties)
+		// --- PROFILE ROUTES (PERBAIKAN DISINI) ---
+		api.GET("/profile", controllers.GetProfile)
+		api.PUT("/profile", controllers.UpdateProfile) // <--- Tambahkan ini
+		api.PUT("/change-password", controllers.ChangePassword) 
+
+			api.GET("/faculties", controllers.GetFaculties)
 		api.POST("/faculties", controllers.CreateFaculty)
 		api.GET("/departments", controllers.GetDepartments)
 		api.POST("/departments", controllers.CreateDepartment)
