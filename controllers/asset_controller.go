@@ -48,58 +48,84 @@ func GetAssetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": asset})
 }
 
-// CreateAsset MENAMBAHKAN Upload File
-func CreateAsset(c *gin.Context) {
-	var input models.Asset
+// Struct Input untuk form-data agar parsing tanggal aman
+type AssetForm struct {
+	Name              string  `form:"name"`
+	AssetCategoryID   uint    `form:"asset_category_id"`
+	InventoryCode     string  `form:"inventory_code"`
+	NUP               int     `form:"nup"`
+	Brand             string  `form:"brand"`
+	Model             string  `form:"model"`
+	SerialNumber      string  `form:"serial_number"`
+	DepartmentID      uint    `form:"department_id"`
+	RoomID            uint    `form:"room_id"`
+	AcquisitionDate   string  `form:"acquisition_date"` // Terima string, parsing manual
+	Price             float64 `form:"price"`
+	ConditionStatus   string  `form:"condition_status"`
+	OperationalStatus string  `form:"operational_status"`
+}
 
-	// 1. Ubah Binding dari ShouldBindJSON ke ShouldBind agar bisa baca Form Data
-	if err := c.ShouldBind(&input); err != nil {
+func CreateAsset(c *gin.Context) {
+	var form AssetForm
+	if err := c.ShouldBind(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 2. Proses Upload File
-	// "photo" adalah nama key di form-data (postman/curl)
+	// Manual Mapping ke Model
+	input := models.Asset{
+		Name:              form.Name,
+		AssetCategoryID:   form.AssetCategoryID,
+		InventoryCode:     form.InventoryCode,
+		NUP:               form.NUP,
+		Brand:             form.Brand,
+		Model:             form.Model,
+		SerialNumber:      form.SerialNumber,
+		DepartmentID:      form.DepartmentID,
+		RoomID:            form.RoomID,
+		Price:             form.Price,
+		ConditionStatus:   form.ConditionStatus,
+		OperationalStatus: form.OperationalStatus,
+	}
+
+	// Parsing Tanggal Manual
+	if form.AcquisitionDate != "" {
+		t, err := time.Parse(time.RFC3339, form.AcquisitionDate) // Parse ISO format dari JS
+		if err == nil {
+			input.AcquisitionDate = t
+		}
+	}
+
+	// Upload File Logic
 	file, err := c.FormFile("photo")
 	if err == nil {
-		// Pastikan folder uploads/assets ada
 		path := "uploads/assets"
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			os.MkdirAll(path, os.ModePerm)
 		}
-
-		// Buat nama file unik (timestamp + nama asli)
 		filename := fmt.Sprintf("%d_%s", time.Now().Unix(), filepath.Base(file.Filename))
 		filepath := fmt.Sprintf("%s/%s", path, filename)
-
-		// Simpan file ke server
-		if err := c.SaveUploadedFile(file, filepath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
-			return
+		if err := c.SaveUploadedFile(file, filepath); err == nil {
+			input.PhotoPath = filepath
 		}
-
-		// Simpan path ke struct input
-		input.PhotoPath = filepath
 	}
 
-	// 3. Set User Tracking
+	// Set User
 	if userID, exists := c.Get("userID"); exists {
 		input.CreatedByID = userID.(uint)
 		input.UpdatedByID = userID.(uint)
 	}
 
-	// 4. Simpan ke Database
+	// Simpan
 	if err := models.DB.Create(&input).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan: " + err.Error()})
 		return
 	}
 
 	RecordLog(c, "CREATE", "assets", input.ID, "Menambahkan aset baru: "+input.Name)
-
 	c.JSON(http.StatusOK, gin.H{"data": input})
 }
 
-// UpdateAsset MENAMBAHKAN kemampuan ganti foto
 func UpdateAsset(c *gin.Context) {
 	var asset models.Asset
 	if err := models.DB.First(&asset, c.Param("id")).Error; err != nil {
@@ -107,47 +133,62 @@ func UpdateAsset(c *gin.Context) {
 		return
 	}
 
-	var input models.Asset
-	// Gunakan ShouldBind untuk Form Data
-	if err := c.ShouldBind(&input); err != nil {
+	var form AssetForm
+	if err := c.ShouldBind(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Cek apakah user mengupload foto baru
+	// Update Fields
+	asset.Name = form.Name
+	asset.AssetCategoryID = form.AssetCategoryID
+	asset.InventoryCode = form.InventoryCode
+	asset.NUP = form.NUP
+	asset.Brand = form.Brand
+	asset.Model = form.Model
+	asset.SerialNumber = form.SerialNumber
+	asset.DepartmentID = form.DepartmentID
+	asset.RoomID = form.RoomID
+	asset.Price = form.Price
+	asset.ConditionStatus = form.ConditionStatus
+	asset.OperationalStatus = form.OperationalStatus
+
+	if form.AcquisitionDate != "" {
+		t, err := time.Parse(time.RFC3339, form.AcquisitionDate)
+		if err == nil {
+			asset.AcquisitionDate = t
+		}
+	}
+
+	// Upload File Logic (Update)
 	file, err := c.FormFile("photo")
 	if err == nil {
-		// Logic simpan file sama seperti Create
 		path := "uploads/assets"
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			os.MkdirAll(path, os.ModePerm)
 		}
-
 		filename := fmt.Sprintf("%d_%s", time.Now().Unix(), filepath.Base(file.Filename))
 		newFilePath := fmt.Sprintf("%s/%s", path, filename)
 
-		if err := c.SaveUploadedFile(file, newFilePath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
-			return
+		if err := c.SaveUploadedFile(file, newFilePath); err == nil {
+			if asset.PhotoPath != "" {
+				os.Remove(asset.PhotoPath) // Hapus foto lama
+			}
+			asset.PhotoPath = newFilePath
 		}
-
-		// Hapus foto lama jika ada (optional, agar tidak menuhin server)
-		if asset.PhotoPath != "" {
-			os.Remove(asset.PhotoPath)
-		}
-
-		// Update path di struct input (agar tersimpan ke DB)
-		input.PhotoPath = newFilePath
 	}
 
 	if userID, exists := c.Get("userID"); exists {
-		input.UpdatedByID = userID.(uint)
+		asset.UpdatedByID = userID.(uint)
 	}
 
-	models.DB.Model(&asset).Updates(input)
+	// Simpan & Cek Error
+	if err := models.DB.Save(&asset).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update: " + err.Error()})
+		return
+	}
 
 	RecordLog(c, "UPDATE", "assets", asset.ID, "Mengupdate data aset")
-
 	c.JSON(http.StatusOK, gin.H{"data": asset})
 }
 

@@ -43,6 +43,7 @@ func main() {
 	// --- Static File Server ---
 	// Ini membuat file di dalam folder "./uploads" bisa diakses via URL "http://localhost:3000/uploads/..."
 	router.Static("/uploads", "./uploads")
+	
 
 	// --- ROOT ENDPOINT (HEALTH CHECK) ---
 	// Diubah agar mengecek koneksi database
@@ -85,6 +86,7 @@ func main() {
 	api := router.Group("/api")
 	api.Use(middlewares.AuthMiddleware())
 	{
+		
 		// --- BARU: Dashboard & User ---
 		api.GET("/dashboard", controllers.GetDashboardStats) // Endpoint Dashboard
 		api.GET("/users", controllers.GetAllUsers)           // Endpoint List User
@@ -92,21 +94,31 @@ func main() {
 		// --- PROFILE ROUTES (PERBAIKAN DISINI) ---
 		api.GET("/profile", controllers.GetProfile)
 		api.PUT("/profile", controllers.UpdateProfile) // <--- Tambahkan ini
-		api.PUT("/change-password", controllers.ChangePassword) 
+		api.PUT("/change-password", controllers.ChangePassword)
 
-			api.GET("/faculties", controllers.GetFaculties)
+		api.GET("/faculties", controllers.GetFaculties)
 		api.POST("/faculties", controllers.CreateFaculty)
+		api.PUT("/faculties/:id", controllers.UpdateFaculty) // <--- TAMBAH
+		api.DELETE("/faculties/:id", controllers.DeleteFaculty)
+
 		api.GET("/departments", controllers.GetDepartments)
 		api.POST("/departments", controllers.CreateDepartment)
+		api.DELETE("/departments/:id", controllers.DeleteDepartment)
+
 		api.GET("/buildings", controllers.GetBuildings)
 		api.POST("/buildings", controllers.CreateBuilding)
-
-		// --- BARU: Filter Ruangan by Gedung ---
+		api.PUT("/buildings/:id", controllers.UpdateBuilding)    // <--- Tambah ini
+		api.DELETE("/buildings/:id", controllers.DeleteBuilding) // <--- Tambah ini
 		api.GET("/buildings/:buildingID/rooms", controllers.GetRoomsByBuildingID)
 
 		api.POST("/rooms", controllers.CreateRoom)
+		api.PUT("/rooms/:id", controllers.UpdateRoom) // <--- Tambah ini
+		api.DELETE("/rooms/:id", controllers.DeleteRoom)
+
 		api.GET("/categories", controllers.GetCategories)
 		api.POST("/categories", controllers.CreateCategory)
+		api.PUT("/categories/:id", controllers.UpdateCategory)    // Untuk Update
+		api.DELETE("/categories/:id", controllers.DeleteCategory) // Untuk Delete
 
 		// --- Assets ---
 		api.GET("/assets", controllers.GetAssets)
@@ -121,8 +133,10 @@ func main() {
 		// ... (kode transaction & audit log tetap sama) ...
 		api.POST("/mutations", controllers.CreateMutation)
 		api.GET("/mutations", controllers.GetMutations)
+
 		api.POST("/maintenances", controllers.CreateMaintenance)
 		api.GET("/maintenances", controllers.GetMaintenances)
+
 		api.GET("/audit-logs", controllers.GetAuditLogs)
 		api.GET("/audit-logs/:id", controllers.GetAuditLogByID)
 	}
