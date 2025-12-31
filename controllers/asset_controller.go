@@ -13,29 +13,29 @@ import (
 
 // Update fungsi GetAssets agar bisa search
 func GetAssets(c *gin.Context) {
-    var assets []models.Asset
-    
-    // Ambil parameter query dari URL: ?search=laptop&status=Baik
-    search := c.Query("search")
-    status := c.Query("status")
+	var assets []models.Asset
 
-    // Mulai Query
-    query := models.DB.Preload("Category").Preload("Department").Preload("Room")
+	// Ambil parameter query dari URL: ?search=laptop&status=Baik
+	search := c.Query("search")
+	status := c.Query("status")
 
-    // Filter by Name (Search)
-    if search != "" {
-        query = query.Where("name LIKE ?", "%"+search+"%")
-    }
+	// Mulai Query
+	query := models.DB.Preload("Category").Preload("Department").Preload("Room")
 
-    // Filter by Condition
-    if status != "" {
-        query = query.Where("condition_status = ?", status)
-    }
+	// Filter by Name (Search)
+	if search != "" {
+		query = query.Where("name LIKE ?", "%"+search+"%")
+	}
 
-    // Eksekusi
-    query.Find(&assets)
+	// Filter by Condition
+	if status != "" {
+		query = query.Where("condition_status = ?", status)
+	}
 
-    c.JSON(http.StatusOK, gin.H{"data": assets})
+	// Eksekusi
+	query.Find(&assets)
+
+	c.JSON(http.StatusOK, gin.H{"data": assets})
 }
 
 // GetAssetByID (Tidak berubah)
@@ -158,7 +158,7 @@ func DeleteAsset(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Asset not found!"})
 		return
 	}
-	
+
 	// Hapus file fisik foto jika ada
 	if asset.PhotoPath != "" {
 		os.Remove(asset.PhotoPath)

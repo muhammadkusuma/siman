@@ -8,34 +8,35 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/gin-contrib/cors"
-	"time"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
 	// 1. LOAD ENVIRONMENT VARIABLES DULU
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Warning: .env file not found, using system environment variables")
 	}
 
 	router := gin.Default()
-	
+
 	// 2. Koneksi Database sekarang akan baca dari env
 	models.ConnectDatabase()
 
-    // --- SETUP CORS ---
-    // Ini mengizinkan semua domain mengakses API (Bisa diperketat nanti)
-    router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"*"}, // Atau ganti "http://localhost:5173"
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-        ExposeHeaders:    []string{"Content-Length"},
-        AllowCredentials: true,
-        MaxAge:           12 * time.Hour,
-    }))
+	// --- SETUP CORS ---
+	// Ini mengizinkan semua domain mengakses API (Bisa diperketat nanti)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Atau ganti "http://localhost:5173"
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	// router := gin.Default()
 	// models.ConnectDatabase()
 
@@ -43,8 +44,37 @@ func main() {
 	// Ini membuat file di dalam folder "./uploads" bisa diakses via URL "http://localhost:3000/uploads/..."
 	router.Static("/uploads", "./uploads")
 
+	// --- ROOT ENDPOINT (HEALTH CHECK) ---
+	// Diubah agar mengecek koneksi database
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "SIMAN API is Running!"})
+		// Default status
+		dbStatus := "Connected"
+		statusCode := http.StatusOK
+
+		// Cek apakah object DB sudah ada
+		if models.DB == nil {
+			dbStatus = "Database Not Initialized"
+			statusCode = http.StatusInternalServerError
+		} else {
+			// Cek ping ke database sql asli
+			sqlDB, err := models.DB.DB()
+			if err != nil {
+				dbStatus = "Database Driver Error"
+				statusCode = http.StatusInternalServerError
+			} else if err := sqlDB.Ping(); err != nil {
+				// Ping gagal berarti server DB mati atau jaringan putus
+				dbStatus = "Connection Failed: " + err.Error()
+				statusCode = http.StatusServiceUnavailable
+			}
+		}
+
+		c.JSON(statusCode, gin.H{
+			"app_name": "SIMAN API",
+			"version":  "1.0.0",
+			"status":   "Running",
+			"database": dbStatus,
+			"time":     time.Now(),
+		})
 	})
 
 	// --- Auth Routes ---
@@ -69,7 +99,7 @@ func main() {
 
 		// --- BARU: Filter Ruangan by Gedung ---
 		api.GET("/buildings/:buildingID/rooms", controllers.GetRoomsByBuildingID)
-		
+
 		api.POST("/rooms", controllers.CreateRoom)
 		api.GET("/categories", controllers.GetCategories)
 		api.POST("/categories", controllers.CreateCategory)

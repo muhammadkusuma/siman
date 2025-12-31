@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -9,7 +10,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var JwtSecret = []byte("RAHASIA_KAMPUS_SUPER_AMAN_2024")
+// Kita hapus variabel global hardcoded
+// var JwtSecret = []byte("RAHASIA_KAMPUS_SUPER_AMAN_2024")
+
+// GetSecretKey adalah helper untuk mengambil kunci rahasia dari Environment Variable
+func GetSecretKey() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		// Fallback value jika di .env kosong (Hanya untuk development, jangan dipakai di production!)
+		return []byte("secret_default_kalau_lupa_set_env")
+	}
+	return []byte(secret)
+}
 
 // GenerateToken membuat token JWT
 func GenerateToken(userID uint, role string) (string, error) {
@@ -19,7 +31,9 @@ func GenerateToken(userID uint, role string) (string, error) {
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(JwtSecret)
+
+	// Gunakan fungsi GetSecretKey() di sini
+	return token.SignedString(GetSecretKey())
 }
 
 // AuthMiddleware memvalidasi token
@@ -43,7 +57,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
 			}
-			return JwtSecret, nil
+			// Gunakan fungsi GetSecretKey() di sini juga
+			return GetSecretKey(), nil
 		})
 
 		if err != nil || !token.Valid {

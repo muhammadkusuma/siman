@@ -18,9 +18,9 @@ type Asset struct {
 	Brand        string `json:"brand" gorm:"size:100;comment:Merk Pabrikan"`
 	Model        string `json:"model" gorm:"size:100;comment:Tipe/Model Barang"`
 	SerialNumber string `json:"serial_number" gorm:"size:100;comment:Nomor Seri Pabrikan"`
-	
+
 	// --- FOTO ASET (BARU) ---
-	PhotoPath    string `json:"photo_path" gorm:"size:255;comment:Lokasi file foto"`
+	PhotoPath string `json:"photo_path" gorm:"size:255;comment:Lokasi file foto"`
 
 	// --- Status & Kondisi ---
 	ConditionStatus   string `json:"condition_status" gorm:"default:'Baik';comment:Kondisi Fisik"`
@@ -47,7 +47,7 @@ type Asset struct {
 	Category   AssetCategory `json:"category" gorm:"foreignKey:AssetCategoryID"`
 	Department Department    `json:"department" gorm:"foreignKey:DepartmentID"`
 	Room       Room          `json:"room" gorm:"foreignKey:RoomID"`
-	
+
 	CreatedBy User `json:"created_by" gorm:"foreignKey:CreatedByID"`
 	UpdatedBy User `json:"updated_by" gorm:"foreignKey:UpdatedByID"`
 }

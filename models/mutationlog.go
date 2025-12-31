@@ -23,19 +23,19 @@ type MutationLog struct {
 	Reason       string    `json:"reason" gorm:"type:text;comment:Alasan mutasi"`
 
 	// --- RELASI DENGAN CONSTRAINT EKSPLISIT ---
-	
+
 	// Jika Aset dihapus, log ikut terhapus (CASCADE)
 	Asset Asset `json:"asset" gorm:"foreignKey:AssetID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	// Jika Unit Asal dihapus, set kolom ini jadi NULL (agar log tetap ada)
 	FromDepartment *Department `json:"from_department" gorm:"foreignKey:FromDepartmentID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	
+
 	// Jika Ruangan Asal dihapus, set NULL
-	FromRoom       *Room       `json:"from_room" gorm:"foreignKey:FromRoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	FromRoom *Room `json:"from_room" gorm:"foreignKey:FromRoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	// Jika Unit Tujuan dihapus, tolak penghapusan (RESTRICT) karena masih tercatat di sini
-	ToDepartment   Department  `json:"to_department" gorm:"foreignKey:ToDepartmentID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
-	
+	ToDepartment Department `json:"to_department" gorm:"foreignKey:ToDepartmentID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+
 	// Jika Ruangan Tujuan dihapus, tolak penghapusan
-	ToRoom         Room        `json:"to_room" gorm:"foreignKey:ToRoomID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+	ToRoom Room `json:"to_room" gorm:"foreignKey:ToRoomID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 }

@@ -26,7 +26,7 @@ func GetAuditLogByID(c *gin.Context) {
 // --- SMART HELPER FUNCTION ---
 // Sekarang tidak butuh parameter 'userID' karena diambil otomatis dari token
 func RecordLog(c *gin.Context, action string, tableName string, recordID uint, changes string) {
-	
+
 	// 1. Ambil User ID dari Context (hasil set dari Middleware JWT)
 	userIDVal, exists := c.Get("userID")
 	var userID uint
@@ -34,7 +34,7 @@ func RecordLog(c *gin.Context, action string, tableName string, recordID uint, c
 		userID = userIDVal.(uint)
 	} else {
 		// Jika tidak ada user (misal sistem background), set 0 atau handle error
-		userID = 0 
+		userID = 0
 	}
 
 	// 2. Ambil Info Tambahan

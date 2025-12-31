@@ -6,9 +6,9 @@ import (
 
 // MaintenanceLog mencatat sejarah perbaikan aset (Service History).
 type MaintenanceLog struct {
-	ID          uint      `json:"id" gorm:"primaryKey;autoIncrement;comment:ID Log Perbaikan"`
-	AssetID     uint      `json:"asset_id" gorm:"not null;comment:ID Aset yang rusak"`
-	
+	ID      uint `json:"id" gorm:"primaryKey;autoIncrement;comment:ID Log Perbaikan"`
+	AssetID uint `json:"asset_id" gorm:"not null;comment:ID Aset yang rusak"`
+
 	IssueDate   time.Time `json:"issue_date" gorm:"comment:Tanggal kerusakan dilaporkan (cth: 2024-05-10)"`
 	Description string    `json:"description" gorm:"type:text;comment:Detail keluhan kerusakan (cth: Layar berkedip dan mati total)"`
 	ActionTaken string    `json:"action_taken" gorm:"type:text;comment:Tindakan perbaikan yang dilakukan (cth: Penggantian LCD Panel)"`

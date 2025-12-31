@@ -39,11 +39,11 @@ func GetDashboardStats(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Dashboard data fetched",
 		"data": gin.H{
-			"total_assets":      totalAssets,
-			"total_asset_value": totalValue,
+			"total_assets":       totalAssets,
+			"total_asset_value":  totalValue,
 			"active_maintenance": totalMaintenance,
-			"total_mutations":   totalMutations,
-			"asset_conditions":  conditionStats,
+			"total_mutations":    totalMutations,
+			"asset_conditions":   conditionStats,
 		},
 	})
 }
