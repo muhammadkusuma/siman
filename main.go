@@ -16,6 +16,23 @@ import (
 )
 
 func main() {
+	// === MIGRATION MODE (UNTUK CI / JENKINS) ===
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		log.Println("Running database migration only (no HTTP server)...")
+
+		// load env tetap dipakai
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Warning: .env file not found, using system environment variables")
+		}
+
+		// koneksi DB + automigrate jalan di sini
+		models.ConnectDatabase()
+
+		log.Println("Database migration completed successfully")
+		return
+	}
+
 	// 1. LOAD ENVIRONMENT VARIABLES DULU
 	err := godotenv.Load()
 	if err != nil {
@@ -135,7 +152,7 @@ func main() {
 
 		api.POST("/maintenances", controllers.CreateMaintenance)
 		api.GET("/maintenances", controllers.GetMaintenances)
-		api.PUT("/maintenances/:id", controllers.UpdateMaintenance) 
+		api.PUT("/maintenances/:id", controllers.UpdateMaintenance)
 		api.DELETE("/maintenances/:id", controllers.DeleteMaintenance)
 
 		api.GET("/audit-logs", controllers.GetAuditLogs)
